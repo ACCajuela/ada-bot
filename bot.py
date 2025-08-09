@@ -16,7 +16,7 @@ BR_TZ = pytz.timezone("America/Sao_Paulo")
 
 OVERDUE_INTERVAL = 24 * 60 * 60
 
-REMINDER_CHANNEL_ID = 1403827054251610272
+REMINDER_CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 TIME_UNITS = {
     'semana': 7 * 24 * 60 * 60,
