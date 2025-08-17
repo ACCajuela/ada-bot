@@ -1,5 +1,3 @@
-Ada Bot
-
 Ada Bot is a task manager bot for Discord.
 With Ada, you can:
 
