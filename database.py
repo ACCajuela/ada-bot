@@ -1,4 +1,6 @@
 import aiosqlite
+import datetime
+import pytz
 
 async def connect_db():
     """
@@ -43,7 +45,18 @@ async def init_db():
         
         await conn.commit()
 
-#Functions for tasks
+        await cursor.execute('''
+            CREATE TABLE IF NOT EXISTS meetings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                participants TEXT,
+                topics TEXT,
+                check_in_time TEXT,
+                check_out_time TEXT
+            )
+        ''')
+        
+        await conn.commit()
+
 async def add_task(title, assigned_to, reminder_interval, start_date, due_date, status="A Fazer"):
     """
     Adiciona uma nova tarefa ao banco de dados.
@@ -117,7 +130,6 @@ async def delete_task(task_id):
         await conn.commit()
         return cursor.rowcount > 0
     
-#Functions for the clockpoint
 async def is_user_checked_in(user_id):
     """
     Verifica se o usuário tem um check-in ativo (sem check-out).
@@ -185,3 +197,100 @@ async def update_check_out_time(entry_id, new_check_out_time):
     async with aiosqlite.connect('ada.db') as conn:
         await conn.execute("UPDATE clockpoint SET check_out = ? WHERE id = ?", (new_check_out_time, entry_id))
         await conn.commit()
+
+async def delete_clockpoint_by_id(point_id):
+    """
+    NOVA FUNÇÃO: Deleta um ponto de relógio pelo seu ID.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        cursor = await conn.cursor()
+        await cursor.execute("DELETE FROM clockpoint WHERE id = ?", (point_id,))
+        await conn.commit()
+        return cursor.rowcount
+
+async def add_meeting_check_in(participants):
+    """
+    Registra o início de uma reunião para múltiplos participantes.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        check_in_time = datetime.datetime.now(pytz.timezone("America/Sao_Paulo")).isoformat()
+        await conn.execute(
+            "INSERT INTO meetings (participants, topics, check_in_time) VALUES (?, ?, ?)",
+            (participants, "", check_in_time) # topics agora começa como uma string vazia
+        )
+        await conn.commit()
+        
+async def add_meeting_topic(meeting_id, new_topics):
+    """
+    Adiciona novos tópicos à reunião existente.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        cursor = await conn.execute("SELECT topics FROM meetings WHERE id = ?", (meeting_id,))
+        existing_topics_tuple = await cursor.fetchone()
+        existing_topics = existing_topics_tuple[0] if existing_topics_tuple else ""
+
+
+        if existing_topics:
+            updated_topics = f"{existing_topics}, {new_topics}"
+        else:
+            updated_topics = new_topics
+        
+        await conn.execute(
+            "UPDATE meetings SET topics = ? WHERE id = ?",
+            (updated_topics, meeting_id)
+        )
+        await conn.commit()
+
+async def get_active_meeting_by_user(user_id):
+    """
+    Busca a reunião ativa (sem check_out_time) em que um utilizador é participante.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        cursor = await conn.execute(
+            "SELECT id, participants, topics, check_in_time FROM meetings WHERE participants LIKE ? AND check_out_time IS NULL",
+            (f"%{user_id}%",)
+        )
+        return await cursor.fetchone()
+
+async def update_meeting_check_out(meeting_id):
+    """
+    Registra o fim de uma reunião.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        check_out_time = datetime.datetime.now(pytz.timezone("America/Sao_Paulo")).isoformat()
+        await conn.execute(
+            "UPDATE meetings SET check_out_time = ? WHERE id = ?",
+            (check_out_time, meeting_id)
+        )
+        await conn.commit()
+
+async def get_all_meetings():
+    """
+    Busca todas as reuniões registradas no banco de dados.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        cursor = await conn.cursor()
+        await cursor.execute("SELECT id, participants, topics, check_in_time, check_out_time FROM meetings ORDER BY check_in_time DESC")
+        return await cursor.fetchall()
+
+async def get_meetings_by_user(user_id):
+    """
+    Busca todas as reuniões em que um utilizador específico participou.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        cursor = await conn.cursor()
+        await cursor.execute(
+            "SELECT id, participants, topics, check_in_time, check_out_time FROM meetings WHERE participants LIKE ? ORDER BY check_in_time DESC",
+            (f"%{user_id}%",)
+        )
+        return await cursor.fetchall()
+    
+async def delete_meeting_by_id(meeting_id):
+    """
+    Deleta uma reunião pelo ID.
+    """
+    async with aiosqlite.connect('ada.db') as conn:
+        cursor = await conn.cursor()
+        await cursor.execute("DELETE FROM meetings WHERE id = ?", (meeting_id,))
+        await conn.commit()
+        return cursor.rowcount
