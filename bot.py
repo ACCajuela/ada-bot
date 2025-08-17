@@ -618,16 +618,13 @@ async def check_reminders():
             start_dt = datetime.datetime.fromisoformat(start_date_str).astimezone(BR_TZ)
             due_dt = datetime.datetime.fromisoformat(due_date_str).astimezone(BR_TZ)
             
-            # Lógica de Lembrete Periódico (apenas se o status for 'Em Andamento')
             if status == "Em Andamento":
                 reminder_interval = int(interval_str)
                 
-                # Calcula quando o próximo lembrete deve ser enviado
                 next_reminder_dt = start_dt
                 while next_reminder_dt < now:
                     next_reminder_dt += datetime.timedelta(seconds=reminder_interval)
                 
-                # Se o próximo lembrete deveria ter sido enviado antes de agora, mas ainda não foi
                 if next_reminder_dt - datetime.timedelta(seconds=reminder_interval) <= now <= next_reminder_dt:
                     destiny = None
                     user_found = discord.utils.get(bot.get_all_members(), display_name=assigned_to)
@@ -642,7 +639,6 @@ async def check_reminders():
                                 break
 
                     if destiny:
-                        # Verifica se a tarefa está atrasada para alterar a mensagem
                         is_overdue = now > due_dt
                         
                         if is_overdue:
@@ -668,12 +664,10 @@ async def check_reminders():
                             target_channel = next((c for c in destiny.guild.text_channels if c.permissions_for(destiny.guild.me).send_messages), None)
                             if target_channel:
                                 await target_channel.send(f"{destiny.mention}\n{reminder_message}")
-                    
-                    # Atualiza a data de início da tarefa para o próximo lembrete
+
                     await update_task_start_date(task_id, (next_reminder_dt + datetime.timedelta(seconds=reminder_interval)).isoformat())
             
     except Exception as e:
         print(f"❌ Erro na tarefa de lembretes: {e}")
-#As tarefas estão sendo mandadas a cada 1 minuto e não respeitam o reminder interval: pq?
 
 bot.run(TOKEN)    
