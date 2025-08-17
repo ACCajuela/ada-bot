@@ -17,6 +17,4 @@ We welcome contributions from the community! 🚀
 
 Feel free to fork the repository, open issues, and submit pull requests.
 
-🧑‍💻 Authors
-
 Developed with ❤️ by Team Lovelace.
