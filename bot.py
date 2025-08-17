@@ -46,7 +46,8 @@ COMMAND_ORDER = [
     'check_in',
     'check_out',
     'list_ponto',
-    'editar_ponto'
+    'editar_ponto',
+
 ]
 
 intents = discord.Intents.default()
@@ -86,8 +87,12 @@ async def ajuda(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.command(help="Adiciona uma nova tarefa por cargo ou por usuário. Ex: >add_tarefa 'Exemplo' | usuario | @usuario  |  18/09/2025 08:30 | 15/10/2025 23:59 | 1 dia ou >add_tarefa 'Exemplo' | cargo | @cargo  |  18/09/2025 08:30 | 15/10/2025 23:59 | 1 dia") 
+@bot.command(help="Adiciona uma nova tarefa por cargo ou por usuário, define a data de inicio e término e o tempo de intervalo entre lembretes. Ex: >add_tarefa 'Exemplo' | usuario | @usuario  |  18/09/2025 08:30 | 15/10/2025 23:59 | 1 dia ou >add_tarefa 'Exemplo' | cargo | @cargo  |  18/09/2025 08:30 | 15/10/2025 23:59 | 1 dia") 
 async def add_tarefa (ctx, *, args):
+    """
+    Adiciona uma nova tarefA.
+    TÍTULO | TIPO | CARGO | @ | DATA DE INÍCIO | DATA DE TÉRMINO | INTERVALO DE LEMBRETES
+    """
     try:
 
         things = [p.strip() for p in args.split("|")]
@@ -239,7 +244,7 @@ async def list_tarefas(ctx, *, args=None):
     except Exception as e:
         await ctx.send(f"❌ Ocorreu um erro ao listar as tarefas: {e}")
 
-@bot.command(help="Atualiza o status da tarefa pelo id e pela atribuição. Ex: >update_status id @usuario ou >update_status id @cargo")
+@bot.command(help="Atualiza o status da tarefa pelo id e pela atribuição. Ex: >update_status id @ A Fazer ou >update_status id @ Em Andamento ou >update_status id @ Conluída")
 async def update_status(ctx, task_id: int, destiny: str, *, status: str):
     """
     Comando para atualizar o status de uma tarefa com base no ID e no responsável.
@@ -274,7 +279,7 @@ async def update_status(ctx, task_id: int, destiny: str, *, status: str):
         except Exception as e:
             await ctx.send(f"❌ Ocorreu um erro ao atualizar o status da tarefa: {e}")
 
-@bot.command(help="Administrador deleta tarefa por id. Ex: >deleta_tarefa id")
+@bot.command(help="Administrador do servidor deleta tarefa por id. Ex: >deleta_tarefa id")
 @commands.has_permissions(administrator=True)
 async def delete_tarefa(ctx, task_id: int):
     """
@@ -426,7 +431,7 @@ async def editar_ponto(ctx, entry_id: int, tipo_registro: str, *, novo_horario: 
         await ctx.send(f"❌ Ocorreu um erro ao editar o registro de ponto: {e}")
 
 @commands.has_permissions(administrator=True)
-@bot.command()
+@bot.command()(help="Administrador do servidor deleta o ponto por id. Ex: >delete_ponto 15")
 async def delete_ponto(ctx, point_id: int):
     """
     Deleta um registro de ponto pelo seu ID. Apenas administradores podem usar.
@@ -441,14 +446,11 @@ async def delete_ponto(ctx, point_id: int):
     except Exception as e:
         await ctx.send(f"❌ Ocorreu um erro ao deletar o registro: {e}")
 
-#Arrumar os lembretes (canal e partir dos status)
-#Colocar comandos de reunião
-
-@bot.command()
+@bot.command()(help="Começa a contagem do tempo de reunião. Ex: >check_in_reuniao @Fulano @Ciclano @Beltrano")
 async def check_in_reuniao(ctx, *members: discord.Member):
     """
     Comando para iniciar uma reunião com outros membros.
-    Exemplo de uso: >check_in_meet @utilizador1 @utilizador2
+    Exemplo de uso: >check_in_reuniao @utilizador1 @utilizador2
     """
     participants_list = list(members) + [ctx.author]
     participants_list = list(set(participants_list))
@@ -468,7 +470,7 @@ async def check_in_reuniao(ctx, *members: discord.Member):
     except Exception as e:
         await ctx.send(f"❌ Ocorreu um erro ao iniciar a reunião: {e}")
 
-@bot.command()
+@bot.command()(help="Quem está na reunião pode adicionar tópicos que foram mencionados. Ex: >add_topico Planejamento")
 async def add_topico(ctx, *, topics: str):
     """
     Adiciona tópicos à sua reunião ativa. Qualquer participante pode usar.
@@ -489,7 +491,7 @@ async def add_topico(ctx, *, topics: str):
     except Exception as e:
         await ctx.send(f"❌ Ocorreu um erro ao adicionar os tópicos: {e}")
 
-@bot.command()
+@bot.command()(help="Comando para finalizar a reunião. Qualquer participante pode usar. Ex: >check_out_reuniao")
 async def check_out_reuniao(ctx):
     """
     Comando para finalizar a reunião atual. Qualquer participante pode usar.
@@ -526,24 +528,22 @@ async def check_out_reuniao(ctx):
     except Exception as e:
         await ctx.send(f"❌ Ocorreu um erro ao finalizar a reunião: {e}")
 
-@bot.command()
+@bot.command()(help="Comando para listar todas as reuniões ou por usuário. Ex: >list_reuniao ou >list_reuniao @usuario")
 async def list_reuniao(ctx, member: discord.Member = None):
     """
     Lista todas as reuniões ou as reuniões de um utilizador específico.
     Exemplos de uso:
-    >list_meetings           (lista todas as reuniões)
-    >list_meetings @usuario  (lista as reuniões de um utilizador específico)
+    >list_reuniao        (lista todas as reuniões)
+    >list_reuniao @usuario  (lista as reuniões de um utilizador específico)
     """
     try:
         if member:
-            # Lógica para listar reuniões de um utilizador específico
             meetings = await get_meetings_by_user(str(member.id))
             if not meetings:
                 await ctx.send(f"⚠️ Nenhuma reunião encontrada para o utilizador **{member.display_name}**.")
                 return
             title_text = f"Histórico de Reuniões de {member.display_name}"
         else:
-            # Lógica para listar todas as reuniões
             meetings = await get_all_meetings()
             if not meetings:
                 await ctx.send("⚠️ Nenhuma reunião encontrada no histórico.")
@@ -554,14 +554,12 @@ async def list_reuniao(ctx, member: discord.Member = None):
         for meeting in meetings:
             meeting_id, participants_str, topics, check_in_time_str, check_out_time_str = meeting
             
-            # Formata a lista de participantes
             participants_ids = participants_str.split(',')
             participants_names = []
             for uid in participants_ids:
                 m = ctx.guild.get_member(int(uid))
                 participants_names.append(m.display_name if m else f"ID: {uid}")
             
-            # Formata a duração
             check_in_time = datetime.datetime.fromisoformat(check_in_time_str).astimezone(BR_TZ)
             duration_str = "Em andamento"
             if check_out_time_str:
@@ -586,7 +584,7 @@ async def list_reuniao(ctx, member: discord.Member = None):
         await ctx.send(f"❌ Ocorreu um erro ao listar as reuniões: {e}")
 
 @commands.has_permissions(administrator=True)
-@bot.command()
+@bot.command()(help="Administradores do servidor podem deletar uma reunião por id. Ex: >delete_reunião 15")
 async def delete_reuniao(ctx, meeting_id: int):
     """
     Deleta uma reunião pelo seu ID. Apenas administradores podem usar.
