@@ -1,9 +1,24 @@
+Ada Bot
+
 Ada Bot is a task manager bot for Discord.
-You can create tasks and assign them to roles or users in your server, and Ada will send reminders at the interval you set.
-You can also use it as a time tracker and meeting notepad.
+With Ada, you can:
 
-Ada Bot was designed to meet our college needs while applying the Kanban Method.
-Feel free to contribute to her development.
+✅ Create tasks and assign them to roles or individual users
 
-Sincerely,
-Team Lovelace
+⏰ Set reminders at custom intervals
+
+📝 Use it as a time tracker and meeting notepad
+
+📌 Organize your workflow following the Kanban Method
+
+Originally designed to support our college projects, Ada Bot is flexible enough for any team or community.
+
+We welcome contributions from the community! 🚀
+
+🤝 Contributing
+
+Feel free to fork the repository, open issues, and submit pull requests.
+
+🧑‍💻 Authors
+
+Developed with ❤️ by Team Lovelace.
