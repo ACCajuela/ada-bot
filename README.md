@@ -9,6 +9,8 @@ With Ada, you can:
 
 📌 Organize your workflow following the Kanban Method
 
+📄 Generate reports of tasks, meetings, and time track in PDF
+
 Originally designed to support our college projects, Ada Bot is flexible enough for any team or community.
 
 We welcome contributions from the community! 🚀
